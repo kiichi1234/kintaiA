@@ -1,0 +1,150 @@
+.user-table {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.btn-users-show {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.btn-log {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#table-attendances {
+  th {
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  td {
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+}
+
+#table-attendances th {
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-left: 1px solid #ddd; /* 日付列の左側の罫線を追加 */
+}
+
+.row1 td:nth-child(1) {
+  width: 100px;
+}
+
+.row1 td:nth-child(2) {
+  width: 50px;
+}
+
+.row1 td:nth-child(3) {
+  width: 50px;
+}
+
+.row1 td:nth-child(4) {
+  width: 600px;
+}
+.row2 td:nth-child(1) {
+  width: 150px;
+}
+
+.row3 td:nth-child(1),
+.row3 td:nth-child(2),
+.row3 td:nth-child(3) {
+  width: 50px;
+}
+
+.row2 td:nth-child(2) {
+  width: 120px;
+}
+
+.row3 td:nth-child(4),
+.row3 td:nth-child(5) {
+  width: 50px;
+}
+
+.row3 td:nth-child(6) {
+  width: 20px;
+}
+
+.row2 td:nth-child(3) {
+  width: 190px;
+}
+
+.row2 td:nth-child(4) {
+  width: 140px;
+}
+
+.row1 td:nth-child(5) {
+  width: 410px;
+}
+
+.row2 td:nth-child(5) {
+  width: 110px;
+}
+
+.row3 td:nth-child(7),
+.row3 td:nth-child(8) {
+  width: 55px;
+}
+
+.row2 td:nth-child(6) {
+  width: 90px;
+}
+
+.row2 td:nth-child(7),
+.row2 td:nth-child(8) {
+  width: 105px;
+}
+
+.label-signup {
+  margin-top: 5px;
+}
+
+.btn-signup {
+  margin-top: 10px;
+}
+
+.label-user--edit {
+  margin-top: 5px;
+}
+
+.btn-user--edit {
+  margin-top: 10px;
+}
+
+#table-users td {
+  vertical-align: middle;
+}
+
+.label-basic-info {
+  margin-top: 5px;
+}
+
+.btn-basic-info {
+  margin: 15px 0;
+  width: 30%;
+}
+/* 土曜日のテキストの色を青にする */
+:root {
+  --saturday-color: blue;
+}
+
+/* 日曜日のテキストの色を赤にする */
+:root {
+  --sunday-color: red;
+}
+
+/* HTML内の土曜日のテキストに適用 */
+span[data-day="Saturday"] {
+  color: var(--saturday-color);
+}
+
+/* HTML内の日曜日のテキストに適用 */
+span[data-day="Sunday"] {
+  color: var(--sunday-color);
+}
