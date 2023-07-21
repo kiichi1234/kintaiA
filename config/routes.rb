@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   get    '/login', to: 'sessions#new'
   post   '/login', to: 'sessions#create'
   delete '/logout', to: 'sessions#destroy'
+  # 出社中の社員一覧を取得するためのルーティング
+  get '/present_employees', to: 'attendances#present_employees', as: :present_employees
 
   resources :users do
     member do
