@@ -35,6 +35,9 @@ class UsersController < ApplicationController
   def edit
   end
 
+  def new_page
+  end
+
   def update
     if @user.update_attributes(user_params)
       flash[:success] = "ユーザー情報を更新しました。"
@@ -94,7 +97,7 @@ def correct_user
 end
 
 # システム管理権限所有かどうか判定します。
-def admin_user
+  def admin_user
   redirect_to root_url unless current_user.admin?
-end
+  end
 end

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  
   root 'static_pages#top'
   get '/signup', to: 'users#new'
 
@@ -8,6 +9,7 @@ Rails.application.routes.draw do
   delete '/logout', to: 'sessions#destroy'
   # 出社中の社員一覧を取得するためのルーティング
   get '/present_employees', to: 'attendances#present_employees', as: :present_employees
+  get '/new_page', to: 'users#new_page'
 
   resources :users do
     member do
@@ -18,4 +20,7 @@ Rails.application.routes.draw do
     end
     resources :attendances, only: :update
   end
+    
+  resources :bases
+  
 end

@@ -7,8 +7,9 @@
         <li><%= link_to "トップへ",(current_user.admin? ? root_path : current_user), class: "header-link" %></li>
       <% if current_user.admin? %>  
         <li><%= link_to "ユーザー覧", users_path %></li>
-       <li> <%= link_to "出勤社員一覧", present_employees_path %></li>
-        <li><%= link_to "基本情報の修正", edit_basic_info_user_path(current_user) %></li>
+       <li><%= link_to "出勤社員一覧", present_employees_path %></li>
+       <li><%= link_to '拠点一覧', bases_path %><li>
+        <li><%= link_to "基本情報の修正", new_page_path %></li>
         
       <% end %>    
         <li class="dropdown">

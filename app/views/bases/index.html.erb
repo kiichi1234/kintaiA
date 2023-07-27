@@ -1,0 +1,31 @@
+<h1>拠点一覧</h1>
+
+<table class="table table-condensed table-hover table-bordered text-center">
+  <thead>
+    <tr>
+    <% if @bases.present? %>
+      <th></th>
+      <th></th>
+     <% end %>
+      <th class="text-center">拠点番号</th>
+      <th class="text-center">拠点名</th>
+      <th class="text-center">拠点種類</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @bases.each do |base| %>
+      <tr>
+        <td><%= link_to '修正', edit_base_path(base), remote: true, class: "btn btn-primary edit-button" %></td>
+        <td><%= link_to '削除', base, method: :delete, data: { confirm: '本当に削除しますか？' }, class: "btn btn-primary" %></td>
+        <td><%= base.base_number %></td>
+        <td><%= base.name %></td>
+        <td><%= base.base_type %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= link_to '拠点情報追加', new_base_path, class: "btn btn-primary" %>
+
+<!--モーダルウインドウ表示-->
+<div id="edit-basic-info" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>

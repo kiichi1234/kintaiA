@@ -1,0 +1,25 @@
+<h1>拠点新規作成</h1>
+
+<%= form_with(model: @base, local: true) do |form| %>
+  <table class="table table-condensed table-hover table-bordered text-center" id="table-users">
+    <thead>
+      <tr>
+        <th class="text-center"><%= form.label :base_number, "拠点番号" %></th>
+        <th class="text-center"><%= form.label :name, "名前" %></th>
+        <th class="text-center"><%= form.label :base_type, "拠点種類" %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><%= form.text_field :base_number %></td>
+        <td><%= form.text_field :name %></td>
+        <td><%= form.select :base_type, ["出勤", "退勤"] , include_blank: "--" %></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="actions">
+    <%= form.submit "登録する", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<%= link_to 'Back', bases_path %>
