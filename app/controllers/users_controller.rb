@@ -13,9 +13,9 @@ class UsersController < ApplicationController
  end
 
 
-  def show
+ def show
   @worked_sum = @attendances.where.not(started_at: nil).count
-  end
+ end
 
   def new
     @user = User.new
@@ -31,6 +31,27 @@ class UsersController < ApplicationController
       render :new
     end
   end
+
+  def import_csv
+    # ファイルがアップロードされたことを確認する
+    if params[:file].blank?
+      flash[:warning] = 'ファイルを選択してください。'
+    else
+      successfully_imported, _ = User.import(params[:file])
+      
+      if successfully_imported == 0
+        flash[:warning] = 'インポートが正常に出来ませんでした。再確認してください。'
+      else
+        flash[:success] = "#{successfully_imported} users were successfully imported."
+      end
+    end
+    redirect_to users_path
+  end
+  
+  
+  
+  
+  
 
   def edit
   end
@@ -67,9 +88,9 @@ class UsersController < ApplicationController
 
   private
 
-    def user_params
-      params.require(:user).permit(:name, :email, :department, :password, :password_confirmation)
-    end
+  def user_params
+    params.require(:user).permit(:name, :email, :department, :password, :password_confirmation, :employee_number, :card_id, :basic_time, :work_start_time, :work_end_time)
+  end
 
     def basic_info_params
       params.require(:user).permit(:department, :basic_time, :work_time)

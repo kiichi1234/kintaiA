@@ -1,3 +1,4 @@
+require 'csv'
 class AttendancesController < ApplicationController
   before_action :set_user, only: [:edit_one_month, :update_one_month]
   before_action :logged_in_user, only: [:update, :edit_one_month]
@@ -46,6 +47,46 @@ class AttendancesController < ApplicationController
   flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
   redirect_to attendances_edit_one_month_user_url(date: params[:date])
   end
+
+  def download
+      @user = User.find(params[:id])
+      attendances = @user.attendances
+      month = params[:date] ? Date.parse(params[:date]) : Date.today
+      attendances = @user.attendances.where(worked_on: month.beginning_of_month..month.end_of_month)
+    
+  
+    csv_data = CSV.generate do |csv|
+      csv << ["日付", "曜日", "出勤時間", "退勤時間"]
+      attendances.each do |attendance|
+        date = attendance.worked_on
+        day_of_week = case date.wday
+                      when 0 then '日'
+                      when 1 then '月'
+                      when 2 then '火'
+                      when 3 then '水'
+                      when 4 then '木'
+                      when 5 then '金'
+                      when 6 then '土'
+                      end
+        if attendance.started_at
+           rounded_minutes_for_start = ((attendance.started_at.min.to_i / 15) * 15) % 60
+           start_time = attendance.started_at.change(min: rounded_minutes_for_start).strftime('%H:%M')
+          else
+            start_time = nil
+          end
+        if attendance.finished_at
+          rounded_minutes = ((attendance.finished_at.min.to_i / 15) * 15) % 60
+          end_time = attendance.finished_at.change(min: rounded_minutes).strftime('%H:%M')  # 'HH:MM' 形式, 15分単位に丸め
+        else
+          end_time = nil
+        end
+        csv << [date, day_of_week, start_time, end_time]
+      end
+    end
+
+    send_data(csv_data, filename: "【勤怠一覧】#{ @user.name }_#{ month.strftime('%Y-%m') }.csv")
+  end
+  
 
   def present_employees
     @present_employees =User.joins(:attendances)

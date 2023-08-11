@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  require 'csv'
   has_many :attendances, dependent: :destroy
   # 「remember_token」という仮想の属性を作成します。
   attr_accessor :remember_token
@@ -30,6 +31,39 @@ class User < ApplicationRecord
   # ランダムなトークンを返します。
   def User.new_token
     SecureRandom.urlsafe_base64
+  end
+
+  # CSVファイルからユーザー情報をインポートします。
+  def self.import(file)
+    error_messages = []
+    successfully_imported_count = 0
+    
+    CSV.foreach(file.path, headers: true) do |row|
+      user = User.find_by(email: row["email"])
+      
+      unless user # このユーザーがデータベースに存在しない場合
+        user = User.new
+        user.attributes = row.to_hash.slice(*csv_attributes)
+        
+        if user.save
+          successfully_imported_count += 1
+        else
+          Rails.logger.error "Failed to create user #{user.email}: #{user.errors.full_messages.join(", ")}"
+          error_messages << "Failed to create user #{user.email}: #{user.errors.full_messages.join(", ")}"
+        end
+      else
+        Rails.logger.info "User with email #{user.email} already exists. Skipping."
+      end
+    end
+    
+    [successfully_imported_count, error_messages]
+  end
+  
+  
+  
+  # CSVファイルから取得する属性を列挙します。
+  def self.csv_attributes
+    ["name", "email", "employee_number", "department", "card_id", "basic_time", "work_start_time", "work_end_time", "manager", "admin", "password"]
   end
 
   # 永続セッションのためハッシュ化したトークンをデータベースに記憶します。

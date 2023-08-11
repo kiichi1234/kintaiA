@@ -11,11 +11,15 @@ Rails.application.routes.draw do
   get '/present_employees', to: 'attendances#present_employees', as: :present_employees
   get '/new_page', to: 'users#new_page'
 
+ 
+
   resources :users do
+    collection { post :import_csv }
     member do
       get 'edit_basic_info'
       patch 'update_basic_info'
       get 'attendances/edit_one_month'
+      get 'attendances/download', to: 'attendances#download', as: :download_attendances
       patch 'attendances/update_one_month' # この行が追加対象です。
     end
     resources :attendances, only: :update
