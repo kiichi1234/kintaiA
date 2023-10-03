@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20230730133332) do
+ActiveRecord::Schema.define(version: 20231001065217) do
 
   create_table "attendances", force: :cascade do |t|
     t.date "worked_on"
@@ -20,6 +20,8 @@ ActiveRecord::Schema.define(version: 20230730133332) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "manager_id"
+    t.boolean "next_day"
     t.index ["user_id"], name: "index_attendances_on_user_id"
   end
 
@@ -30,6 +32,22 @@ ActiveRecord::Schema.define(version: 20230730133332) do
     t.datetime "updated_at", null: false
     t.integer "base_number"
     t.string "base_type"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "manager_id"
+    t.integer "attendance_id"
+    t.text "content"
+    t.boolean "read"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_active", default: false, null: false
+    t.string "status"
+    t.datetime "approved_at"
+    t.index ["attendance_id"], name: "index_notifications_on_attendance_id"
+    t.index ["manager_id"], name: "index_notifications_on_manager_id"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|

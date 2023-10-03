@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   require 'csv'
   has_many :attendances, dependent: :destroy
+  has_many :managed_attendances, class_name: 'Attendance', foreign_key: 'manager_id'
+  has_many :notifications, foreign_key: 'manager_id'
   # 「remember_token」という仮想の属性を作成します。
   attr_accessor :remember_token
   before_save { self.email = email.downcase }
@@ -31,6 +33,10 @@ class User < ApplicationRecord
   # ランダムなトークンを返します。
   def User.new_token
     SecureRandom.urlsafe_base64
+  end
+
+  def latest_notification_for(manager)
+    Notification.where(manager_id: manager.id, user_id: self.id).order(updated_at: :desc).first
   end
 
   # CSVファイルからユーザー情報をインポートします。

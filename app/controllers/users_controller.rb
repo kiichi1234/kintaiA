@@ -48,11 +48,23 @@ class UsersController < ApplicationController
     redirect_to users_path
   end
   
+  def attendances_change
+    @notifications = Notification.where(manager_id: current_user.id).includes(:attendance)
+  end
   
+  def approved_log
+    @year = params[:year].present? ? params[:year].to_i : Date.today.year
+    @month = params[:month].present? ? params[:month].to_i : Date.today.month
+    start_date = Date.new(@year, @month, 1)
+    end_date = start_date.end_of_month
   
-  
+    @approved_notifications = Notification.joins(:attendance)
+      .where(user_id: current_user, status: '承認')
+      .where("attendances.worked_on BETWEEN ? AND ?", start_date, end_date)
+  end
   
 
+  
   def edit
   end
 

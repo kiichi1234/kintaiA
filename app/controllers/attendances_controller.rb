@@ -28,25 +28,37 @@ class AttendancesController < ApplicationController
   end
 
   def edit_one_month
+    @superiors = User.where(manager: true).pluck(:name, :id)
   end
 
   def update_one_month
-  ActiveRecord::Base.transaction do
-    attendances_params.each do |id, item|
-      attendance = Attendance.find(id)
-      attendance.editing = true
-      if !attendance.update_attributes(item)
-        flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
-        redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
+    ActiveRecord::Base.transaction do
+      attendances_params.each do |id, item|
+        attendance = Attendance.find(id)
+        attendance.editing = true
+  
+        if attendance.update_attributes(item)
+          # Notificationを作成
+          Notification.create(
+            user_id: current_user.id,
+            manager_id: item[:manager_id],
+            attendance_id: attendance.id
+          )
+        else
+          flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
+          redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
+        end
       end
     end
-  end
-  flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
-  redirect_to user_url(date: params[:date])
+  
+    flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
+    redirect_to user_url(date: params[:date])
   rescue ActiveRecord::RecordInvalid
-  flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
-  redirect_to attendances_edit_one_month_user_url(date: params[:date])
+    flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
+    redirect_to attendances_edit_one_month_user_url(date: params[:date])
   end
+  
+
 
   def download
       @user = User.find(params[:id])
@@ -87,6 +99,11 @@ class AttendancesController < ApplicationController
     send_data(csv_data, filename: "【勤怠一覧】#{ @user.name }_#{ month.strftime('%Y-%m') }.csv")
   end
   
+  def attendance_confirmation
+  end
+  
+
+
 
   def present_employees
     @present_employees =User.joins(:attendances)
@@ -104,8 +121,9 @@ class AttendancesController < ApplicationController
 
     # 1ヶ月分の勤怠情報を扱います。
     def attendances_params
-      params.require(:user).permit(attendances: [:started_at, :finished_at, :note])[:attendances]
+      params.require(:user).permit(attendances: [:started_at, :finished_at, :note, :next_day, :manager_id])[:attendances]
     end
+    
 
     # beforeフィルター
 

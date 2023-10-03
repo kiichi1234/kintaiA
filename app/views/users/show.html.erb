@@ -27,8 +27,8 @@
   </table>
 </div>
 <% if current_user.manager? %>
-<%= link_to "【所属長承認申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %>
-<div><%= link_to "【勤怠変更申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %></div>
+<div><%= link_to "【所属長承認申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %></div>
+<div><%= link_to "【勤怠変更申請のお知らせ】", attendances_change_user_path(@user), remote: true %></div>
 <div><%= link_to "【残業申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %></div>
 <% end %>
 
@@ -36,7 +36,7 @@
  	 <%= link_to "勤怠を編集", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-primary" %>
  	 <%= link_to "CSV出力", download_attendances_user_path(@user, date: @first_day.to_s(:date)), class: "btn btn-primary" %>
  </div>
- <div class="btn-log"><%= link_to "勤怠修正ログ　（承認済）", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-primary" %></div>
+ <div class="btn-log"><%= link_to "勤怠修正ログ　（承認済）", approved_log_user_path(current_user), class: "btn btn-primary" %></div>
   <table class="table table-bordered table-condensed table-hover" id="table-attendances">
 		<thead>
 			<tr class="row1">
@@ -93,9 +93,9 @@
   <td><%= day.finished_at&.strftime('%H') %></td>
   <td><%= day.finished_at.present? ? format('%02d', ((day.finished_at.min.to_i / 15) * 15) % 60) : nil %></td>
   <td></td>
-  <td>
+<td>
   <% if day.started_at.present? && day.finished_at.present? %>
-    <% str_times = working_times(day.started_at, day.finished_at) %>
+    <% str_times = working_times(day.started_at, day.finished_at, day.next_day) %>
     <% @total_working_times = @total_working_times.to_f + str_times.to_f %>
     <%= str_times %>
   <% end %>
@@ -124,3 +124,4 @@
 		</tfoot>
 	</table>
 </div>
+<div class="modal fade" id="attendances_change" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>

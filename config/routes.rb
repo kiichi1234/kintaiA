@@ -21,10 +21,17 @@ Rails.application.routes.draw do
       get 'attendances/edit_one_month'
       get 'attendances/download', to: 'attendances#download', as: :download_attendances
       patch 'attendances/update_one_month' # この行が追加対象です。
+      get 'attendances_change'
+      get 'approved_log'
     end
     resources :attendances, only: :update
   end
     
   resources :bases
   
+  resources :notifications do
+    collection do
+      post :batch_update
+    end
+  end
 end

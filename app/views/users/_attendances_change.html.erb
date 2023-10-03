@@ -1,0 +1,72 @@
+<%= form_with url: batch_update_notifications_path, method: :post, local: true do |form| %>
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <% @notifications.group_by { |notification| notification.attendance.user }.each do |user, user_notifications| %>
+          
+          <h4 class="text-center">【<%= user.name %>からの勤怠変更申請】</h4> <!-- ユーザーの名前 -->
+
+          <table class="table table-condensed table-hover table-bordered text-center">
+            <!-- テーブルヘッダー -->
+            <thead>
+              <tr>
+                <th rowspan="3">日付</th>
+                <th rowspan="3">曜日</th>
+                <th colspan="2">変更前</th>
+                <th colspan="2">変更後</th>
+                <th rowspan="3">備考</th>
+                <th rowspan="3">指示者確認㊞</th>
+                <th rowspan="3">変更</th>
+                <th rowspan="3">勤怠を確認する</th>
+              </tr>
+              <tr>
+                <th>出社</th>
+                <th>退社</th>
+                <th>出社</th>
+                <th>退社</th>
+              </tr>
+              <tr>
+                <th>時</th>
+                <th>分</th>
+                <th>時</th>
+                <th>分</th>
+              </tr>
+            </thead>
+            
+            <tbody>
+              <% user_notifications.each do |notification| %>
+                <% attendance = notification.attendance %>
+                <!-- 通知の各行を表示 -->
+                <tr>
+                  <td><%= attendance.worked_on.strftime("%-m/%-d") %></td>
+                  <td><%= $days_of_the_week[attendance.worked_on.wday] %></td>
+                  <td></td>
+                  <td></td>
+                  <td><%= attendance.started_at&.strftime("%H:%M") if attendance.started_at %></td>
+                  <td><%= attendance.finished_at&.strftime("%H:%M") if attendance.finished_at %></td>
+                  <td><%= attendance.note %></td> 
+                  <td><%= select_tag "notifications[#{notification.id}][status]", options_for_select(Notification::STATUSES, notification.status) %></td>
+                  <td><%= form.check_box "notifications[#{notification.id}][is_active]", {}, "true", "false" %></td>
+                  <td><button type="button" class="btn btn-primary">確認</button></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          
+        <% end %>
+
+        <div class="text-center" style="margin-top: 20px;">
+          <%= form.submit "変更を送信する", class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

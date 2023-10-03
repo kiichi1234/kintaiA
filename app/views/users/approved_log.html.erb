@@ -1,0 +1,58 @@
+<% provide(:title,"勤怠ログ") %>
+<h1>勤怠ログ(承認済み)</h1>
+  <div>
+    <%= link_to "リセット", approved_log_user_path(date: @first_day), class: "btn btn-default"%>
+  </div>
+<%= form_with url: approved_log_user_path(current_user), method: :get, local: true, class: 'mb-3' do |f| %>
+  <table>
+    <tbody>
+      <tr>
+        <td><%= f.label :year, "年" %></td>
+        <td>
+          <%= f.select :year, 
+                       (Date.today.year - 5..Date.today.year).to_a.reverse, 
+                       { selected: @year }, 
+                       { class: 'form-control', onchange: 'this.form.submit();' } 
+          %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= f.label :month, "月" %></td>
+        <td>
+          <%= f.select :month, 
+                       (1..12).to_a, 
+                       { selected: @month }, 
+                       { class: 'form-control', onchange: 'this.form.submit();' } 
+          %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>
+
+<table class="table table-condensed table-hover table-bordered text-center">
+  <thead>
+    <tr>
+      <th>日付</th>
+      <th>変更前出社時間</th>
+      <th>変更前退社時間</th>
+      <th>変更後出社</th>
+      <th>変更後退社</th>
+      <th>指示者</th>
+      <th>承認日</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @approved_notifications.each do |notification| %>
+      <tr>
+        <td><%= notification.attendance.worked_on.strftime('%Y-%m-%d')  %></td>
+        <td></td>
+        <td></td>
+        <td><%= notification.attendance.started_at.strftime("%H:%M") if notification.attendance.started_at  %></td>
+        <td><%= notification.attendance.finished_at.strftime("%H:%M") if notification.attendance.finished_at  %></td>
+        <td><%= notification.manager.name %></td>
+        <td><%= notification.approved_at.strftime('%Y-%m-%d') unless notification.approved_at.nil? %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
