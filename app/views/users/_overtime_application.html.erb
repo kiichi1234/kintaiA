@@ -1,0 +1,40 @@
+<div class="modal-dialog modal-lg modal-dialog-center" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h1 class="modal-title">残業申請</h1>
+    </div>
+    <div class="modal-body">
+      <%= form_with(model: @user, url: update_overtime_application_user_path(@user, date: @attendance.worked_on), local: true, method: :patch) do |f| %>
+        <table class="table table-condensed table-hover table-bordered text-center">
+          <!-- テーブルヘッダー -->
+          <thead>
+            <tr>
+              <th class="text-center">日付</th>
+              <th class="text-center">曜日</th>
+              <th class="text-center">終了予定時間</th>
+              <th class="text-center">翌日</th>
+              <th class="text-center">業務処理内容</th>
+              <th class="text-center">指示者確認㊞</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><%= l(@attendance.worked_on, format: :short) %></td>
+              <td><%= l(@attendance.worked_on, format: '%a') %></td>
+              <td><%= f.time_field :scheduled_end, class: 'form-control' %></td>
+              <td><%= f.check_box :next_day %></td>
+              <td><%= f.text_field :note, class: "form-control" %></td>
+              <td><%= f.select :manager_id, @superiors, class: "form-control" %></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="text-center" style="margin-top: 20px;">
+          <%= f.submit "変更を送信する", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

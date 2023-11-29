@@ -23,6 +23,12 @@ Rails.application.routes.draw do
       patch 'attendances/update_one_month' # この行が追加対象です。
       get 'attendances_change'
       get 'approved_log'
+      patch 'show_update'
+      get 'approve_onemonth'
+      get 'overtime_confirmation'
+      get 'overtime_application'
+      patch 'update_overtime_application'
+      
     end
     resources :attendances, only: :update
   end
@@ -32,6 +38,7 @@ Rails.application.routes.draw do
   resources :notifications do
     collection do
       post :batch_update
+      
     end
   end
 end

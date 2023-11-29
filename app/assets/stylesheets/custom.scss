@@ -84,6 +84,34 @@ p {
   box-sizing:         border-box;
 }
 
+/* リンクとバッジのコンテナ用のスタイル */
+.notification-link-container {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* バッジのスタイル、少し余白を追加 */
+.notification-badge {
+  margin-left: 5px;
+}
+
+.notification-link {
+  color: #FF0000;
+  font-weight: bold;
+}
+
+.notification-count {
+  padding: 1px;
+  margin-bottom: 1px;
+  border: 1px solid #FF0000;
+  color: #FF0000;
+  font-weight: bold;
+}
+
+.default-link-color {
+  color: #007bee; /* ここにlink_toのデフォルトの色を設定 */
+}
+
 /* error_messages */
 
 #error_explanation {

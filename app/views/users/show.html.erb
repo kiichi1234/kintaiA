@@ -3,11 +3,15 @@
   <table class="table table-bordered table-condensed user-table">
 
     <tr>
+    <% if @user == current_user %>
       <td>
       	<%= link_to "←", user_path(date: @first_day.prev_month), class: "btn btn-info" %>
       	<%= l(@first_day, format: :middle) %>時間管理表
 			  <%= link_to "→", user_path(date: @first_day.next_month), class: "btn btn-info" %>
       </td>
+    <% elsif %>
+        <td><%= l(@first_day, format: :middle) %>時間管理表</td>
+          <% end %>
  <td>
   指定勤務開始時間 <%= @user.work_start_time.strftime("%H:%M") if @user.work_start_time %><br>
   指定勤務終了時間 <%= @user.work_end_time.strftime("%H:%M") if @user.work_end_time %>
@@ -26,17 +30,49 @@
     </tr>
   </table>
 </div>
-<% if current_user.manager? %>
-<div><%= link_to "【所属長承認申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %></div>
-<div><%= link_to "【勤怠変更申請のお知らせ】", attendances_change_user_path(@user), remote: true %></div>
-<div><%= link_to "【残業申請のお知らせ】", attendances_edit_one_month_user_path(date: @first_day), remote: true, class: "overtime_class" %></div>
+
+<% if current_user.manager? && @user == current_user %>
+<div>
+  <% if @one_month_count[current_user.id].to_i > 0 %>
+    <%= link_to "【所属長承認申請のお知らせ】", approve_onemonth_user_path(@user), remote: true, class: "notification-link" %>
+    <span class="notification-count">
+      <%= @one_month_count[current_user.id] %>個の通知があります
+    </span>
+  <% else %>
+    <span class="default-link-color">【所属長承認申請のお知らせ】</span>
+  <% end %>
+</div>
+
+<div>
+  <% if @attendances_count[current_user.id].to_i > 0 %>
+    <%= link_to "【勤怠変更申請のお知らせ】", attendances_change_user_path(@user), remote: true, class: "notification-link" %>
+    <span class="notification-count">
+      <%= @attendances_count[current_user.id] %>個の通知があります
+    </span>
+  <% else %>
+    <span class="default-link-color">【勤怠変更申請のお知らせ】</span>
+  <% end %>
+</div>
+
+<div>
+  <% if @overtime_count[current_user.id].to_i > 0 %>
+    <%= link_to "【残業申請のお知らせ】", overtime_confirmation_user_path(@user), remote: true, class: "overtime_class notification-link" %>
+    <span class="notification-count">
+      <%= @overtime_count[current_user.id] %>個の通知があります
+    </span>
+  <% else %>
+    <span class="default-link-color">【残業申請のお知らせ】</span>
+  <% end %>
+</div>
 <% end %>
 
+<% if @user == current_user %>
 <div class="btn-users-show">
  	 <%= link_to "勤怠を編集", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-primary" %>
  	 <%= link_to "CSV出力", download_attendances_user_path(@user, date: @first_day.to_s(:date)), class: "btn btn-primary" %>
  </div>
  <div class="btn-log"><%= link_to "勤怠修正ログ　（承認済）", approved_log_user_path(current_user), class: "btn btn-primary" %></div>
+ <% end %>
   <table class="table table-bordered table-condensed table-hover" id="table-attendances">
 		<thead>
 			<tr class="row1">
@@ -71,7 +107,11 @@
 		<tbody>
 			<% @attendances.each do |day| %>
   <tr>
-  <td><%= link_to "残業申請", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-primary" %></td>
+  <% if @user == current_user %>
+  <td><%= link_to "残業申請", overtime_application_user_path(@user, date: day.worked_on), remote: true, class: "btn btn-primary" %></td>
+  <% elsif %>
+  <td></td>
+  <% end %>
   <td><%= l(day.worked_on, format: :short) %></td>
   <td>
     <% if day.worked_on.wday == 0 %>
@@ -119,9 +159,20 @@
 			<td colspan="6"><%= format_basic_info(@user.work_time).to_f * @worked_sum %></td>
 			<td><%= format("%.2f", @total_working_times.to_f) %></td>
 			<td colspan="5"></td>
-			<td><%= link_to "申請", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-primary" %></td>
+      <% if @user == current_user %>
+			<td><%= form_with(url: show_update_user_path, local: true, method: :patch) do |f| %>
+          <%= f.select :manager_id, @superiors, class: "form-control" %>
+          <%= f.hidden_field :first_day, value: @first_day %>
+          <%= f.hidden_field :user_id, value: @user.id %>
+          <%= f.submit "申請", class: "btn btn-primary" %>
+          <% end %>
+        <% end %> 
+      </td>
 		 </tr>
 		</tfoot>
 	</table>
 </div>
 <div class="modal fade" id="attendances_change" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="approve_onemonth" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="overtime_application" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="overtime_confirmation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>

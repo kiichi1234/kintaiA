@@ -1,0 +1,59 @@
+<%= form_with url: batch_update_notifications_path, method: :post, local: true do |form| %>
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <% @overtime_notifications.group_by { |notification| notification.user }.each do |user, user_notifications| %>
+          
+          <h4 class="text-center">【<%= user.name %>からの残業申請】</h4>
+
+          <table class="table table-condensed table-hover table-bordered text-center">
+            <thead>
+              <tr>
+                <th class="text-center">日付</th>
+                <th class="text-center">曜日</th>
+                <th class="text-center">終了予定時間</th>
+                <th class="text-center">指定勤務終了時間</th>
+                <th class="text-center">時間外時間</th>
+                <th class="text-center">業務処理内容</th>
+                <th class="text-center">指示者確認㊞</th>
+                <th class="text-center">変更</th>
+                <th class="text-center">勤怠を確認する</th>
+
+              </tr>
+            </thead>
+
+            <tbody>
+              <% user_notifications.each do |notification| %>
+              <% attendance = notification.attendance %>
+                <tr>
+                  <td><%= l(attendance.worked_on, format: :short) %></td>
+                  <td><%= l(attendance.worked_on, format: '%a') %></td>
+                  <td><%= l(notification.scheduled_end, format: :time) %></td>
+                  <td><%= user.work_end_time.strftime("%H:%M") rescue '時間未設定' %></td>
+                  <td><%= notification.overtime_hours %></td>
+                  <td><%= notification.content %></td>
+                  <td><%= select_tag "notifications[#{notification.id}][status]", options_for_select(Notification::STATUSES, notification.status) %></td>
+                  <td><%= form.check_box "notifications[#{notification.id}][is_active]", {}, "true", "false" %></td>
+                  <td><%= link_to "確認", user_path(user, date: notification.attendance.worked_on), class: "btn btn-primary" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          
+        <% end %>
+
+        <div class="text-center" style="margin-top: 20px;">
+          <%= form.submit "変更を送信する", class: "btn btn-primary" %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20231001065217) do
+ActiveRecord::Schema.define(version: 20231105125057) do
 
   create_table "attendances", force: :cascade do |t|
     t.date "worked_on"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 20231001065217) do
     t.datetime "updated_at", null: false
     t.integer "manager_id"
     t.boolean "next_day"
+    t.datetime "overtime_end_time"
     t.index ["user_id"], name: "index_attendances_on_user_id"
   end
 
@@ -45,6 +46,11 @@ ActiveRecord::Schema.define(version: 20231001065217) do
     t.boolean "is_active", default: false, null: false
     t.string "status"
     t.datetime "approved_at"
+    t.date "requested_month"
+    t.string "source"
+    t.text "note"
+    t.time "scheduled_end"
+    t.boolean "next_day"
     t.index ["attendance_id"], name: "index_notifications_on_attendance_id"
     t.index ["manager_id"], name: "index_notifications_on_manager_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
@@ -59,8 +65,8 @@ ActiveRecord::Schema.define(version: 20231001065217) do
     t.string "remember_digest"
     t.boolean "admin", default: false
     t.string "department"
-    t.datetime "basic_time", default: "2023-07-17 23:00:00"
-    t.datetime "work_time", default: "2023-07-17 22:30:00"
+    t.datetime "basic_time", default: "2023-10-20 23:00:00"
+    t.datetime "work_time", default: "2023-10-20 22:30:00"
     t.boolean "manager", default: false
     t.string "employee_number"
     t.string "card_id"

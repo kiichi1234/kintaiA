@@ -28,35 +28,52 @@ class AttendancesController < ApplicationController
   end
 
   def edit_one_month
-    @superiors = User.where(manager: true).pluck(:name, :id)
+    @superiors = User.where(manager: true).where.not(id: current_user.id).pluck(:name, :id)
   end
 
-  def update_one_month
-    ActiveRecord::Base.transaction do
-      attendances_params.each do |id, item|
-        attendance = Attendance.find(id)
-        attendance.editing = true
+def update_one_month
+  ActiveRecord::Base.transaction do
+    attendances_params.each do |id, item|
+      attendance = Attendance.find(id)
+      attendance.editing = true
   
-        if attendance.update_attributes(item)
-          # Notificationを作成
-          Notification.create(
-            user_id: current_user.id,
-            manager_id: item[:manager_id],
-            attendance_id: attendance.id
-          )
-        else
-          flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
-          redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
-        end
+      # 出勤時間と退勤時間が両方とも空白の場合はスキップ
+      next if item[:started_at].blank? && item[:finished_at].blank?
+
+      # started_at と finished_at が両方とも存在する場合は更新をスキップ
+      next if attendance.started_at.present? && attendance.finished_at.present?
+
+      # 属性を更新しますが、まだ保存はしません
+      attendance.assign_attributes(item)
+  
+      # 属性に変更がなければ次のループに進みます
+      next unless attendance.changed?
+  
+      if attendance.save
+        # Notificationの作成
+        Notification.create(
+          user_id: current_user.id,
+          manager_id: item[:manager_id],
+          attendance_id: attendance.id,
+          source: 'update_one_month'
+        )
+      else
+        flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
+        redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
       end
     end
-  
-    flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
-    redirect_to user_url(date: params[:date])
-  rescue ActiveRecord::RecordInvalid
-    flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
-    redirect_to attendances_edit_one_month_user_url(date: params[:date])
   end
+
+  flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
+  redirect_to user_url(date: params[:date])
+rescue ActiveRecord::RecordInvalid
+  flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
+  redirect_to attendances_edit_one_month_user_url(date: params[:date])
+end
+
+  
+  
+  
   
 
 

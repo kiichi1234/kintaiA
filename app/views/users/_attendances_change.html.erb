@@ -10,7 +10,7 @@
 
       <div class="modal-body">
         
-        <% @notifications.group_by { |notification| notification.attendance.user }.each do |user, user_notifications| %>
+        <% @attendances_notifications.group_by { |notification| notification.attendance.user }.each do |user, user_notifications| %>
           
           <h4 class="text-center">【<%= user.name %>からの勤怠変更申請】</h4> <!-- ユーザーの名前 -->
 
@@ -55,7 +55,7 @@
                   <td><%= attendance.note %></td> 
                   <td><%= select_tag "notifications[#{notification.id}][status]", options_for_select(Notification::STATUSES, notification.status) %></td>
                   <td><%= form.check_box "notifications[#{notification.id}][is_active]", {}, "true", "false" %></td>
-                  <td><button type="button" class="btn btn-primary">確認</button></td>
+                  <td><%= link_to "確認", user_path(user, date: notification.attendance.worked_on), class: "btn btn-primary" %></td>
                 </tr>
               <% end %>
             </tbody>
