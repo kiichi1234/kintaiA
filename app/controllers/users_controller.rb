@@ -23,6 +23,7 @@ class UsersController < ApplicationController
   @one_month_count = @approve_one_month_notifications.group_by { |n| n.manager_id }.transform_values(&:size)
   @attendances_count = @attendances_notifications.group_by { |n| n.manager_id }.transform_values(&:size)
   @overtime_count = @overtime_notifications.group_by { |n| n.manager_id }.transform_values(&:size)
+  @user_sent_notifications = Notification.where(user_id: current_user.id, source: 'show_update', requested_month: @first_day)
  end
 
  def show_update
@@ -101,7 +102,8 @@ end
   end
   
   def attendances_change
-    @attendances_notifications = Notification.where(manager_id: current_user.id, source: 'update_one_month').includes(:attendance)
+    @attendances_notifications = Notification.joins(:user).where(source: 'update_one_month', manager_id: current_user.id, status: '申請中').select('notifications.*, users.name as user_name')
+
   end
   
   def approved_log
@@ -111,13 +113,13 @@ end
     end_date = start_date.end_of_month
   
     @approved_notifications = Notification.joins(:attendance)
-      .where(user_id: current_user, status: '承認')
+      .where(user_id: current_user, source: 'update_one_month', status: '承認')
       .where("attendances.worked_on BETWEEN ? AND ?", start_date, end_date)
   end
 
 
   def approve_onemonth
-    @approve_one_month_notifications = Notification.joins(:user).where(source: 'show_update', manager_id: current_user.id).select('notifications.*, users.name as user_name')
+    @approve_one_month_notifications = Notification.joins(:user).where(source: 'show_update', manager_id: current_user.id, status: '申請中').select('notifications.*, users.name as user_name')
 
   end
   
@@ -169,7 +171,7 @@ end
   
   
   def overtime_confirmation
-    @overtime_notifications = Notification.joins(:user).where(source: 'overtime', manager_id: current_user.id).select('notifications.*, users.name as user_name')
+    @overtime_notifications = Notification.joins(:user).where(source: 'overtime', manager_id: current_user.id, status: '申請中').select('notifications.*, users.name as user_name')
   end
 
   def edit

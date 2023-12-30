@@ -140,15 +140,48 @@
     <%= str_times %>
   <% end %>
 </td>
-  <td><%= day.note %></td>
+<td><%= day.note %></td>
+<% if day.notifications.present? %>
+  <% display_status = '' %>
+  <% count_overtime = day.notifications.any? { |n| n.source == 'overtime' } %>
+  <% count_update_one_month = day.notifications.any? { |n| n.source == 'update_one_month' } %>
+  <% day.notifications.each do |notification| %>
+    <% if ['承認', '否認'].include?(notification.status) && notification.source == 'overtime' %>
+      <!-- ステータスが承認または否認でsourceがovertimeの場合、申請内容を表示 -->
+      <td><%= l(notification.scheduled_end, format: '%H') %></td>
+      <td><%= l(notification.scheduled_end, format: '%M') %></td>
+      <td><%= notification.overtime_hours %></td>
+      <td><%= notification.content %></td>
+    <% elsif ['申請中', 'なし'].include?(notification.status) && notification.source == 'overtime' %>
+      <!-- ステータスが申請中またはなしでsourceがovertimeの場合、空白セルを表示 -->
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    <% end %>
+    <!-- ここでdisplay_statusに情報を追加 -->
+    <% display_status += (notification.source == 'overtime' ? '残業 ' : notification.source == 'update_one_month' ? '勤怠編集 ' : '') + notification.status + '<br>' if notification.source != 'show_update' %>
+  <% end %>
+  <% if !count_overtime && count_update_one_month %>
+    <!-- sourceにovertimeがなくupdate_one_monthしかない場合の処理 -->
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+  <% end %>
+  <!-- display_statusを表示 -->
+  <td><%= display_status.html_safe %></td>
+<% else %>
+  <!-- 通知が存在しない場合、全てのセルに空白を表示 -->
   <td></td>
   <td></td>
   <td></td>
   <td></td>
   <td></td>
+<% end %>
+
+
 </tr>
-
-
 <% end %>
 		</tbody>
 		
@@ -160,7 +193,17 @@
 			<td><%= format("%.2f", @total_working_times.to_f) %></td>
 			<td colspan="5"></td>
       <% if @user == current_user %>
-			<td><%= form_with(url: show_update_user_path, local: true, method: :patch) do |f| %>
+      <% display_onemonth = '' %>
+			<td><% @user_sent_notifications.each do |one_month| %>
+              <% display_onemonth += "所属長承認 #{one_month.manager.name} :#{one_month.status} " %>
+          <% end %>
+
+              <% if display_onemonth.empty? %>
+                <%= display_onemonth = "所属長承認 未 " %>
+              <% else %>
+                <%= display_onemonth %>
+              <% end %>
+        <%= form_with(url: show_update_user_path, local: true, method: :patch) do |f| %>
           <%= f.select :manager_id, @superiors, class: "form-control" %>
           <%= f.hidden_field :first_day, value: @first_day %>
           <%= f.hidden_field :user_id, value: @user.id %>
