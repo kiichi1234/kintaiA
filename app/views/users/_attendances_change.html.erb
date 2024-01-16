@@ -55,7 +55,7 @@
                   <td><%= attendance.note %></td> 
                   <td><%= select_tag "notifications[#{notification.id}][status]", options_for_select(Notification::STATUSES, notification.status) %></td>
                   <td><%= form.check_box "notifications[#{notification.id}][is_active]", {}, "true", "false" %></td>
-                  <td><%= link_to "確認", user_path(user, date: notification.attendance.worked_on.beginning_of_month), class: "btn btn-primary" %></td>
+                  <td><%= link_to "確認", user_path(user, date: notification.attendance.worked_on.beginning_of_month), class: "btn btn-primary", target: "_blank" %></td>
                 </tr>
               <% end %>
             </tbody>

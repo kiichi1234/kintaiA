@@ -3,7 +3,7 @@ class NotificationsController < ApplicationController
     selected_notifications = notification_params.values.select { |data| data[:is_active] == 'true' }
 
     if selected_notifications.empty?
-      flash[:danger] = "更新する場合は変更欄にチェックを付けてください。"
+      flash[:danger] = "変更欄にチェックを付けてください。"
       redirect_to user_url(id: current_user.id, date: params[:date]) and return
     end
 
@@ -13,7 +13,7 @@ class NotificationsController < ApplicationController
         notification.update(notification_data) # ここでexcept(:is_active)を取り除く
       end
     end
-    flash[:success] = "ユーザーからの勤怠変更申請を更新しました。"
+    flash[:success] = "ユーザーからの申請を更新しました。"
     redirect_to user_url(id: current_user.id, date: params[:date])
   end
       

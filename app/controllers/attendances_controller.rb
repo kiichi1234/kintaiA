@@ -4,6 +4,7 @@ class AttendancesController < ApplicationController
   before_action :logged_in_user, only: [:update, :edit_one_month]
   before_action :admin_or_correct_user, only: [:update, :edit_one_month, :update_one_month]
   before_action :set_one_month, only: :edit_one_month
+  before_action :admin_user, only: :present_employees
 
   UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。"
 
@@ -31,45 +32,51 @@ class AttendancesController < ApplicationController
     @superiors = User.where(manager: true).where.not(id: current_user.id).pluck(:name, :id)
   end
 
-def update_one_month
-  ActiveRecord::Base.transaction do
-    attendances_params.each do |id, item|
-      attendance = Attendance.find(id)
-      attendance.editing = true
+  def update_one_month
+    ActiveRecord::Base.transaction do
+      attendances_params.each do |id, item|
+        attendance = Attendance.find(id)
+        attendance.editing = true
   
-      # 出勤時間と退勤時間が両方とも空白の場合はスキップ
-      next if item[:started_at].blank? && item[:finished_at].blank?
-
-      # started_at と finished_at が両方とも存在する場合は更新をスキップ
-      next if attendance.started_at.present? && attendance.finished_at.present?
-
-      # 属性を更新しますが、まだ保存はしません
-      attendance.assign_attributes(item)
+        next if item[:started_at].blank? && item[:finished_at].blank?
   
-      # 属性に変更がなければ次のループに進みます
-      next unless attendance.changed?
+        attendance.assign_attributes(item)
   
-      if attendance.save
-        # Notificationの作成
-        Notification.create(
-          user_id: current_user.id,
-          manager_id: item[:manager_id],
-          attendance_id: attendance.id,
-          source: 'update_one_month'
-        )
-      else
-        flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
-        redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
+        next unless attendance.changed?
+  
+        if attendance.save
+          existing_notification = Notification.find_by(
+            user_id: current_user.id,
+            manager_id: item[:manager_id],
+            attendance_id: attendance.id,
+            source: 'update_one_month'
+          )
+  
+          if existing_notification
+            existing_notification.update(status: '申請中')
+          else
+            Notification.create(
+              user_id: current_user.id,
+              manager_id: item[:manager_id],
+              attendance_id: attendance.id,
+              source: 'update_one_month'
+            )
+          end
+        else
+          flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
+          redirect_to attendances_edit_one_month_user_url(date: params[:date]) and return
+        end
       end
     end
+  
+    flash[:success] = "1ヶ月分の勤怠情報を更新・申請しました。"
+    redirect_to user_url(date: params[:date])
+  rescue ActiveRecord::RecordInvalid
+    flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
+    redirect_to attendances_edit_one_month_user_url(date: params[:date])
   end
-
-  flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
-  redirect_to user_url(date: params[:date])
-rescue ActiveRecord::RecordInvalid
-  flash[:danger] = "無効な入力データがあったため、更新をキャンセルしました。"
-  redirect_to attendances_edit_one_month_user_url(date: params[:date])
-end
+  
+  
 
   
   

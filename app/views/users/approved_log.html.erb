@@ -3,7 +3,7 @@
   <div>
     <%= link_to "リセット", approved_log_user_path(date: @first_day), class: "btn btn-default"%>
   </div>
-<%= form_with url: approved_log_user_path(current_user), method: :get, local: true, class: 'mb-3' do |f| %>
+<%= form_with url: approved_log_user_path(@user), method: :get, local: true, class: 'mb-3' do |f| %>
   <table>
     <tbody>
       <tr>

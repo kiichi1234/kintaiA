@@ -123,15 +123,17 @@
 <% end %>
   </td>
   <td><%= day.started_at&.strftime('%H') %></td>
-  <td><%= day.started_at.present? ? format('%02d', ((day.started_at.min.to_i / 15) * 15) % 60) : nil %></td>
+  <td><%= day.started_at.present? ? format('%02d', day.started_at.min) : nil %></td>
   <td>
+<% if @user == current_user %>
   <% if btn_text = attendance_state(day) %>
     <%= link_to "#{btn_text}", user_attendance_path(@user, day), method: :patch, class: "btn btn-primary btn-attendance" %>
   <% end %>
+<% end %>
   </td>
 
   <td><%= day.finished_at&.strftime('%H') %></td>
-  <td><%= day.finished_at.present? ? format('%02d', ((day.finished_at.min.to_i / 15) * 15) % 60) : nil %></td>
+  <td><%= day.finished_at.present? ? format('%02d', day.finished_at.min) : nil %></td>
   <td></td>
 <td>
   <% if day.started_at.present? && day.finished_at.present? %>

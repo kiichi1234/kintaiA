@@ -1,8 +1,9 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info, :overtime_application, :overtime_confirmation]
+  before_action :set_user, only: [:show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info, :overtime_application, :overtime_confirmation, :approved_log]
   before_action :logged_in_user, only: [:index, :edit, :update, :destroy, :edit_basic_info, :update_basic_info]
-  before_action :correct_user, only: [:show, :edit, :update, :overtime_application]
-  before_action :admin_user, only: [:destroy, :edit_basic_info, :update_basic_info]
+  before_action :correct_user, only: [ :edit, :update, :approved_log]
+  before_action :show_correct_user, only: :show
+  before_action :admin_user, only: [:destroy, :edit_basic_info, :update_basic_info, :index]
   before_action :set_one_month, only: :show
   before_action :approve_onemonth, only: :show
   before_action :attendances_change, only: :show
@@ -10,7 +11,7 @@ class UsersController < ApplicationController
 
  def index
   if params[:search].blank?
-    @users = User.paginate(page: params[:page])
+    @users = User.where.not(id: current_user.id).paginate(page: params[:page])
   else
     @users = User.where("name LIKE ?", "%#{params[:search]}%").paginate(page: params[:page])
   end
@@ -18,6 +19,11 @@ class UsersController < ApplicationController
 
 
  def show
+  if @user.admin?
+    # 管理者の場合はユーザー一覧ページにリダイレクト
+    redirect_to users_path
+    return
+  end
   @worked_sum = @attendances.where.not(started_at: nil).count
   @superiors = User.where(manager: true).where.not(id: current_user.id).pluck(:name, :id)
   @one_month_count = @approve_one_month_notifications.group_by { |n| n.manager_id }.transform_values(&:size)
@@ -32,7 +38,6 @@ class UsersController < ApplicationController
   attendance = Attendance.find_by(user_id: @user.id, worked_on: @first_day)
   
   if attendance
-    # 既存の通知がないかチェック
     existing_notification = Notification.find_by(
       user_id: @user.id,
       manager_id: params[:manager_id],
@@ -40,11 +45,22 @@ class UsersController < ApplicationController
       source: 'show_update'
     )
 
-    # 既存の通知がある場合は二重申請を防止
     if existing_notification
-      flash[:danger] = '既に申請されています。'
+      # 既存の通知を最新の情報で更新
+      existing_notification.assign_attributes(
+        # ここに新しい属性を追加します
+        requested_month: params[:first_day],
+        status: '申請中' # ステータスをリセット
+      )
+
+      if existing_notification.save
+        # 通知トリガーのロジックを追加する場合はここに記述
+        flash[:success] = '申請しました。'
+      else
+        flash[:danger] = '申請に失敗しました: ' + existing_notification.errors.full_messages.join(', ')
+      end
     else
-      # 通知の作成と保存
+      # 新しい通知の作成と保存
       notification = Notification.new(
         user_id: @user.id,
         manager_id: params[:manager_id],
@@ -66,6 +82,7 @@ class UsersController < ApplicationController
   
   redirect_to user_url(date: params[:date])
 end
+
 
 
 
@@ -130,10 +147,14 @@ end
 
   def update_overtime_application
     @user = User.find(params[:id])
+     # 指定勤務終了時間が設定されていない場合は処理を中止
+  unless @user.work_end_time
+    flash[:danger] = '指定勤務終了時間が設定されていません。'
+    redirect_to user_path(@user) and return
+  end
     @attendance = Attendance.find_by(user_id: @user.id, worked_on: params[:date])
   
     if @attendance
-      # 既存の通知がないかチェック
       existing_notification = Notification.find_by(
         user_id: @user.id,
         manager_id: params[:user][:manager_id],
@@ -141,11 +162,22 @@ end
         source: 'overtime'
       )
   
-      # 既存の通知がある場合は二重申請を防止
       if existing_notification
-        flash[:danger] = '既に残業申請がされています。'
+        # 既存の通知を最新の情報で更新
+        existing_notification.assign_attributes(
+          content: params[:user][:note],
+          scheduled_end: params[:user][:scheduled_end],
+          next_day: params[:user][:next_day],
+          status: '申請中' # ステータスをリセット
+        )
+  
+        if existing_notification.save
+          flash[:success] = '残業申請しました。'
+        else
+          flash[:danger] = '残業申請に失敗しました: ' + existing_notification.errors.full_messages.join(', ')
+        end
       else
-        # 通知の作成と保存
+        # 新しい通知の作成と保存
         notification = Notification.new(
           user_id: @user.id,
           manager_id: params[:user][:manager_id],
@@ -157,7 +189,7 @@ end
         )
       
         if notification.save
-          flash[:success] = '残業申請が完了しました。'
+          flash[:success] = '残業申請しました。'
         else
           flash[:danger] = '残業申請に失敗しました: ' + notification.errors.full_messages.join(', ')
         end
@@ -235,7 +267,19 @@ end
 
 # アクセスしたユーザーが現在ログインしているユーザーか確認します。
 def correct_user
-  redirect_to(root_url) unless current_user?(@user) || current_user.admin?|| current_user.manager?
+  redirect_to(root_url) unless current_user?(@user) || current_user.admin?
+end
+
+def show_correct_user
+  # 現在のユーザーが管理者、または対象のユーザーと同一である場合にアクセスを許可
+  is_admin = current_user.admin?
+  is_same_user = current_user?(@user)
+  
+  # マネージャーが管理者ユーザーのページにアクセスしようとしている場合をチェック
+  is_manager_accessing_admin = current_user.manager? && @user.admin? && !is_admin
+
+  # 条件に合わない場合はリダイレクト
+  redirect_to(root_url) unless is_same_user || is_admin || (current_user.manager? && !is_manager_accessing_admin)
 end
 
 # システム管理権限所有かどうか判定します。

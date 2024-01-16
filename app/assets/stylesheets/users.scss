@@ -93,12 +93,15 @@
 }
 
 .row2 td:nth-child(6) {
-  width: 90px;
+  width: 100px;
 }
 
-.row2 td:nth-child(7),
+.row2 td:nth-child(7){
+  width: 125px;
+}
+
 .row2 td:nth-child(8) {
-  width: 105px;
+  width: 75px;
 }
 
 .label-signup {
